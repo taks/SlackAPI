@@ -10,8 +10,6 @@ using System.Threading;
 
 namespace SlackAPI
 {
-    
-
     class RequestState<K>
         where K : Response
     {
@@ -96,32 +94,32 @@ namespace SlackAPI
                 return;
             }
 
-            K responseObj;
+            K responseObj = DeserializeResponse(response);
+            callback?.Invoke(responseObj);
+        }
+
+        internal static K DeserializeResponse(HttpWebResponse response)
+        {
             if (response == null)
             {
-                responseObj = CreateDefaultResponseForError(new Exception("Empty response"));
-                callback?.Invoke(responseObj);
-                return;
+                return CreateDefaultResponseForError(new Exception("Empty response"));
             }
-
             try
             {
                 using (Stream responseReading = response.GetResponseStream())
                 using (StreamReader reader = new StreamReader(responseReading))
                 {
                     string responseData = reader.ReadToEnd();
-                    responseObj = responseData.Deserialize<K>();
+                    return responseData.Deserialize<K>();
                 }
             }
             catch (Exception e)
             {
-                responseObj = CreateDefaultResponseForError(e);
+                return CreateDefaultResponseForError(e);
             }
-
-            callback?.Invoke(responseObj);
         }
 
-        private K CreateDefaultResponseForError(Exception e)
+        private static K CreateDefaultResponseForError(Exception e)
         {
             var defaultResponse = (K)Activator.CreateInstance<K>();
             defaultResponse.ok = false;

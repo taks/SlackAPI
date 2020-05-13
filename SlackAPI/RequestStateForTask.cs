@@ -50,17 +50,7 @@ namespace SlackAPI
                 //TODO: Handle timeouts, etc?
             }
 
-            K responseObj;
-
-            using (Stream responseReading = response.GetResponseStream())
-            {
-                using (StreamReader reader = new StreamReader(responseReading))
-                {
-                    string responseData = reader.ReadToEnd();
-                    responseObj = responseData.Deserialize<K>();
-                }
-            }
-
+            K responseObj = RequestState<K>.DeserializeResponse(response);
             return responseObj;
         }
 

@@ -106,11 +106,21 @@ namespace SlackAPI
             }
             try
             {
-                using (Stream responseReading = response.GetResponseStream())
-                using (StreamReader reader = new StreamReader(responseReading))
+                if (response.ContentType.Contains("application/json"))
                 {
-                    string responseData = reader.ReadToEnd();
-                    return responseData.Deserialize<K>();
+                    using (Stream responseReading = response.GetResponseStream())
+                    using (StreamReader reader = new StreamReader(responseReading))
+                    {
+                        string responseData = reader.ReadToEnd();
+                        return responseData.Deserialize<K>();
+                    }
+                }
+                else
+                {
+                    K responseObj = (K)Activator.CreateInstance(typeof(K));
+                    responseObj.ok = false;
+                    responseObj.error = response.StatusCode.ToString();
+                    return responseObj;
                 }
             }
             catch (Exception e)
